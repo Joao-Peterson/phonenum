@@ -87,14 +87,13 @@ begin
     end
     else
     begin
-        try
-            var name: string := p.countryName; 
-        except
-            on E: Exception do
-            begin
-                Assert.Pass;      
-            end;
-        end;
+        Assert.WillRaise(
+            procedure begin
+                var name: string := p.countryName;   
+            end,
+            zapE,
+            'zapE'
+        );
     end;
 end;
 

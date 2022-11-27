@@ -2,6 +2,10 @@
 
 interface
 
+uses 
+    System.SysUtils,
+    System.Classes;
+
 type
 
     // phone number class, uses the E.212 ITU standard
@@ -44,11 +48,11 @@ type
         destructor Destroy(); override;
     end;
 
+    zapE = class(Exception);
+
 implementation
 
 uses
-    System.Classes,
-    System.SysUtils,
     System.RegularExpressions;
 
 const 
@@ -65,7 +69,7 @@ function phoneNumT.getCountryName(): string;
 begin
     var code := countryCodes.IndexOf(countryCodeF.ToString());
 
-    if code = -1 then raise Exception.Create('country code: [' + countryCodeF.ToString() + '] is a invalid code or unknown');
+    if code = -1 then raise zapE.Create('country code: [' + countryCodeF.ToString() + '] is a invalid code or unknown');
 
     Result := countryNames.KeyNames[code];
 end;
@@ -74,7 +78,7 @@ function phoneNumT.getDDDName(): string;
 begin
     var code := dddCodesList.IndexOf(networkCodeF.ToString());
 
-    if code = -1 then raise Exception.Create('DDD code: [' + networkCodeF.ToString() + '] is a invalid DDD or unknown');
+    if code = -1 then raise zapE.Create('DDD code: [' + networkCodeF.ToString() + '] is a invalid DDD or unknown');
 
     Result := dddNamesList.KeyNames[code];
 end;
@@ -94,16 +98,16 @@ end;
 
 function matchPhone(phone: string; regex: string): TMatch;
 begin
-    if phone.IsEmpty() then raise Exception.Create('phone passed is empty');
+    if phone.IsEmpty() then raise zapE.Create('phone passed is empty');
 
     var match: TMatch;
     try
         match := TRegEx.Match(phone, regex);
     except
-        on E: Exception do raise;
+        on E: Exception do raise zapE.Create('error trying to match phone number. Message: ' + E.Message);
     end;
 
-    if not match.Success then raise Exception.Create('no match was found for the phone');
+    if not match.Success then raise zapE.Create('no match was found for the phone');
 
     Result := match;
 end;
@@ -116,14 +120,15 @@ begin
     try
         match := matchPhone(phone, brazilRegex);
     except
-        on E: Exception do raise;
+        on E: zapE do raise;
+        on E: Exception do zapE.Create('unexpected exception. Message: ' + E.Message);
     end;
 
     var i: integer;
     var country: integer := -1;
 
-    if match.Groups.Count < 5 then raise Exception.Create('regex on brazil phone number didn''t found all values.');
-    if match.Groups.Count > 5 then raise Exception.Create('regex on brazil phone number found extra values. Invalid brazil''s number.');
+    if match.Groups.Count < 5 then raise zapE.Create('regex on brazil phone number didn''t found all values.');
+    if match.Groups.Count > 5 then raise zapE.Create('regex on brazil phone number found extra values. Invalid brazil''s number.');
 
     for i := 0 to match.Groups.Count-1 do
     begin
@@ -144,8 +149,8 @@ begin
         end;
     end;
 
-    if country <> 55 then raise Exception.Create('country passed is not from brazil. Country code 55 not found.');
-    if subscriptionCode2F = 0 then raise Exception.Create('phone number doesn''t have a second numeric part like: "94454-5745". Invalid brazil''s number');
+    if country <> 55 then raise zapE.Create('country passed is not from brazil. Country code 55 not found.');
+    if subscriptionCode2F = 0 then raise zapE.Create('phone number doesn''t have a second numeric part like: "94454-5745". Invalid brazil''s number');
 
     countryCodeF := 55;
 end;
@@ -158,11 +163,12 @@ begin
     try
         match := matchPhone(phone, internationalRegex);
     except
-        on E: Exception do raise;
+        on E: zapE do raise;
+        on E: Exception do zapE.Create('unexpected exception. Message: ' + E.Message);
     end;
 
-    if match.Groups.Count < 4 then raise Exception.Create('regex on international phone number didn''t found enough values.');
-    if match.Groups.Count > 5 then raise Exception.Create('regex on international phone number found too many values. Invalid international''s number.');
+    if match.Groups.Count < 4 then raise zapE.Create('regex on international phone number didn''t found enough values.');
+    if match.Groups.Count > 5 then raise zapE.Create('regex on international phone number found too many values. Invalid international''s number.');
 
     var i: integer;
     for i := 0 to match.Groups.Count - 1 do
