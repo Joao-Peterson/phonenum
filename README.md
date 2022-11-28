@@ -54,6 +54,7 @@ begin
 
     WriteLn(p.brazilNumber);
     // 49 95769-8674
+    // note that for CreateFromBrazil, numbers without a extra 9 will be corrected
 
     WriteLn(p.internacionalNumber);
     // 55 49 957698674

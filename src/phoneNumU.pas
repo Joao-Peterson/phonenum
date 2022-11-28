@@ -11,7 +11,7 @@ type
     // phone number class, uses the E.212 ITU standard
     // https://www.itu.int/rec/T-REC-E.212-201609-I/en
     phoneNumT = class
-        private
+        protected
         // country code. Ex: +55, +1
         countryCodeF: Integer;
         // network carrier code. Ex: 49, 555
