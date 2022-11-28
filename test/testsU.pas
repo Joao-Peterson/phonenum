@@ -91,8 +91,8 @@ begin
             procedure begin
                 var name: string := p.countryName;   
             end,
-            zapE,
-            'zapE'
+            phoneE,
+            'phoneE'
         );
     end;
 end;
