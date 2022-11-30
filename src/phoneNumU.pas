@@ -21,27 +21,40 @@ type
         subscriptionCode2F: Int64;
 
         function getInternationalNumber(): string;
+        function getPrettyPrint(): string;
         function getBrazilNumber(): string;
         function getCountryName(): string;
         function getDDDName(): string;
 
         public
         // IMSI format
+        // country code. Ex: +55, +1
         property countryCode: Integer read countryCodeF write countryCodeF;
         property countryName: String read getCountryName;
+        // network carrier code. Ex: 49, 555
         property networkCarrierCode: Integer read networkCodeF write networkCodeF;
+        // subscription number. Ex: 984169457, 4832626838, 756757
         property subscriptionNumber: Int64 read subscriptionCodeF write subscriptionCodeF;
         property subscriptionNumber2: Int64 read subscriptionCode2F write subscriptionCode2F;
+
+        // formatted number. Ex: 55 49 984562379
         property internationalNumber: String read getInternationalNumber;
+        // formatted number. Ex: +55 (49) 98456-2379
+        property prettyNumber: String read getPrettyPrint;
 
         // Brazil number format
+        // DDD. Ex: 49, 42
         property ddd: Integer read networkCodeF write networkCodeF;
+        // region name associated with the number. Ex: São paulo, Santa catarina
         property dddRegion: String read getDDDName;
+        // subscription number part 1. Ex: 98456-
         property number: Int64 read subscriptionCodeF write subscriptionCodeF;
+        // subscription number part 1. Ex: -2379
         property number2: Int64 read subscriptionCode2F write subscriptionCode2F;
+        // formatted number. Ex: (49) 98456-2379
         property brazilNumber: String read getBrazilNumber;
 
-        // create phoneNum from string, specific for brazil. Number can have a 55 or not in front 
+        // create phoneNum from string, specific for brazil. Number can have a 55 or not in front. If a 9 is not present in front of the subscription number, it will be added
         constructor CreateFromBrazil(phone: string);
         // create phoneNum from string. Must have a country code
         constructor CreateFromInternational(phone: string);
@@ -56,7 +69,7 @@ uses
     System.RegularExpressions;
 
 const 
-    brazilRegex         = '^\+?(55)?\s?\(?(\d{1,3})\)?\s?9?(\d{4})[-\s]?(\d{4})$';
+    brazilRegex         = '^\+?(55)?\s?\(?(0?\d{1,2})\)?\s?9?(\d{4})[-\s]?(\d{4})$';
     internationalRegex  = '^\+?(\d{1,3})[\s\-]?\(?(\d{1,3})\)?[\s\-]?([\d\-\s]{3,10})';
 
 var 
@@ -81,6 +94,11 @@ begin
     if code = -1 then raise phoneE.Create('DDD code: [' + networkCodeF.ToString() + '] is a invalid DDD or unknown');
 
     Result := dddNamesList.KeyNames[code];
+end;
+
+function phoneNumT.getPrettyPrint(): string;
+begin
+    Result := Format('+%d (%d) %d-%d', [countryCodeF, networkCodeF, subscriptionCodeF, subscriptionCode2F]);
 end;
 
 function phoneNumT.getBrazilNumber(): string;
@@ -133,23 +151,25 @@ begin
     for i := 0 to match.Groups.Count-1 do
     begin
         case i of
-            1: begin
+            1: begin                                                                                                        // country
                 if not match.Groups.Item[i].Value.IsEmpty then
                     country := match.Groups.Item[i].Value.ToInteger
                 else
                     country := 55;
             end;
 
-            2: networkCodeF := match.Groups.Item[i].Value.ToInteger;
-            3: begin
+            2: networkCodeF := match.Groups.Item[i].Value.ToInteger;                                                        // ddd
+            3: begin                                                                                                        // num1
                 var num1: string := '9' + match.Groups.Item[i].Value;
                 subscriptionCodeF := num1.ToInteger;            
             end;
-            4: subscriptionCode2F := match.Groups.Item[i].Value.ToInteger;
+            4: subscriptionCode2F := match.Groups.Item[i].Value.ToInteger;                                                  // num2
         end;
     end;
 
     if country <> 55 then raise phoneE.Create('country passed is not from brazil. Country code 55 not found.');
+    if subscriptionCodeF.ToString.Length <> 5 then raise phoneE.Create('phone number first numeric part has length different than 5. number: ['+ IntToStr(subscriptionCodeF) +']. Invalid brazil''s number');
+    if subscriptionCode2F.ToString.Length <> 4 then raise phoneE.Create('phone number second numeric part has length different than 4. number: ['+ IntToStr(subscriptionCode2F) +']. Invalid brazil''s number');
     if subscriptionCode2F = 0 then raise phoneE.Create('phone number doesn''t have a second numeric part like: "94454-5745". Invalid brazil''s number');
 
     countryCodeF := 55;

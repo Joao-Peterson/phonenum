@@ -28,6 +28,7 @@ type
         [TestCase('Case 16: 049 57698674',      '049 57698674,55,49,95769,8674,49 95769-8674,1')]
         [TestCase('Case 17: 04957698674',       '04957698674,55,49,95769,8674,49 95769-8674,1')]
         [TestCase('Case 18: 554284184379',      '554284184379,55,42,98418,4379,42 98418-4379,1')]
+        [TestCase('Case 18: 5542984184379',     '5542984184379,55,42,98418,4379,42 98418-4379,1')]
         procedure brazilTest(phone: string; expectedCountry: Integer; expectedNetwork: Integer; expectedNum1: Int64; expectedNum2: Int64; expectedFull: string; shouldPass: Integer);
 
         [Test]
@@ -47,6 +48,10 @@ type
         [TestCase('Case 13: 1 (227) 85742-957', '1 (227) 85742-957,1,227,85742957,0,1 227 85742957,1')]
         [TestCase('Case 14: 1-227-85742-957',   '1-227-85742-957,1,227,85742957,0,1 227 85742957,1')]
         procedure internacionalTest(phone: string; expectedCountry: Integer; expectedNetwork: Integer; expectedNum1: Int64; expectedNum2: Int64; expectedFull: string; shouldPass: Integer);
+
+        [Test]
+        [TestCase('Case 0: +55 49 95769-8674',  '+55 (49) 95769-8674,1')]
+        procedure prettyPrintTest(phone: string; expectedFull: string; shouldPass: Integer);
 
         [Test]
         [TestCase('Case 0: (49) 95769-8674', '(49) 95769-8674,Santa Catarina,1')]
@@ -70,6 +75,25 @@ uses
     System.Classes,
     System.SysUtils,
     System.IOUtils;
+
+procedure phoneNumTestT.prettyPrintTest(phone: string; expectedFull: string; shouldPass: Integer);
+begin
+    var p: phoneNumT; 
+    try
+        p := phoneNumT.CreateFromInternational(phone);
+    except
+        on E: Exception do raise;
+    end;
+
+    if shouldPass = 1 then
+    begin
+        Assert.AreEqual(expectedFull, p.prettyNumber, 'prettyNumber');
+    end
+    else
+    begin
+        Assert.AreNotEqual(expectedFull, p.prettyNumber, 'prettyNumber');
+    end;
+end;
 
 procedure phoneNumTestT.getCountryNameTest(phone: string; expectedCountryName: string; shouldPass: Integer);
 begin
