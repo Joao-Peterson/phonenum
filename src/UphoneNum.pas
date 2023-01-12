@@ -1,4 +1,4 @@
-﻿unit phoneNumU;
+﻿unit UphoneNum;
 
 interface
 
@@ -10,17 +10,18 @@ type
 
     // phone number class, uses the E.212 ITU standard
     // https://www.itu.int/rec/T-REC-E.212-201609-I/en
-    phoneNumT = class
+    TphoneNum = class
         protected
         // country code. Ex: +55, +1
-        countryCodeF: Integer;
+        FcountryCode: Integer;
         // network carrier code. Ex: 49, 555
-        networkCodeF: Integer;
+        FnetworkCode: Integer;
         // subscription number. Ex: 984169457, 4832626838, 756757
-        subscriptionCodeF: Int64;
-        subscriptionCode2F: Int64;
+        FsubscriptionCode: Int64;
+        FsubscriptionCode2: Int64;
 
         function getInternationalNumber(): string;
+        
         function getPrettyPrint(): string;
         function getBrazilNumber(): string;
         function getCountryName(): string;
@@ -29,13 +30,13 @@ type
         public
         // IMSI format
         // country code. Ex: +55, +1
-        property countryCode: Integer read countryCodeF write countryCodeF;
+        property countryCode: Integer read FcountryCode write FcountryCode;
         property countryName: String read getCountryName;
         // network carrier code. Ex: 49, 555
-        property networkCarrierCode: Integer read networkCodeF write networkCodeF;
+        property networkCode: Integer read FnetworkCode write FnetworkCode;
         // subscription number. Ex: 984169457, 4832626838, 756757
-        property subscriptionNumber: Int64 read subscriptionCodeF write subscriptionCodeF;
-        property subscriptionNumber2: Int64 read subscriptionCode2F write subscriptionCode2F;
+        property subscriptionNumber: Int64 read FsubscriptionCode write FsubscriptionCode;
+        property subscriptionNumber2: Int64 read FsubscriptionCode2 write FsubscriptionCode2;
 
         // formatted number. Ex: 55 49 984562379
         property internationalNumber: String read getInternationalNumber;
@@ -44,13 +45,13 @@ type
 
         // Brazil number format
         // DDD. Ex: 49, 42
-        property ddd: Integer read networkCodeF write networkCodeF;
+        property ddd: Integer read FnetworkCode write FnetworkCode;
         // region name associated with the number. Ex: São paulo, Santa catarina
         property dddRegion: String read getDDDName;
         // subscription number part 1. Ex: 98456-
-        property number: Int64 read subscriptionCodeF write subscriptionCodeF;
+        property number: Int64 read FsubscriptionCode write FsubscriptionCode;
         // subscription number part 1. Ex: -2379
-        property number2: Int64 read subscriptionCode2F write subscriptionCode2F;
+        property number2: Int64 read FsubscriptionCode2 write FsubscriptionCode2;
         // formatted number. Ex: (49) 98456-2379
         property brazilNumber: String read getBrazilNumber;
 
@@ -61,7 +62,7 @@ type
         destructor Destroy(); override;
     end;
 
-    phoneE = class(Exception);
+    Ephone = class(Exception);
 
 implementation
 
@@ -78,59 +79,59 @@ var
     countryCodes: TStringList;
     countryNames: TStringList;
 
-function phoneNumT.getCountryName(): string;
+function TphoneNum.getCountryName(): string;
 begin
-    var code := countryCodes.IndexOf(countryCodeF.ToString());
+    var code := countryCodes.IndexOf(FcountryCode.ToString());
 
-    if code = -1 then raise phoneE.Create('country code: [' + countryCodeF.ToString() + '] is a invalid code or unknown');
+    if code = -1 then raise Ephone.Create('country code: [' + FcountryCode.ToString() + '] is a invalid code or unknown');
 
     Result := countryNames.KeyNames[code];
 end;
 
-function phoneNumT.getDDDName(): string;
+function TphoneNum.getDDDName(): string;
 begin
-    var code := dddCodesList.IndexOf(networkCodeF.ToString());
+    var code := dddCodesList.IndexOf(FnetworkCode.ToString());
 
-    if code = -1 then raise phoneE.Create('DDD code: [' + networkCodeF.ToString() + '] is a invalid DDD or unknown');
+    if code = -1 then raise Ephone.Create('DDD code: [' + FnetworkCode.ToString() + '] is a invalid DDD or unknown');
 
     Result := dddNamesList.KeyNames[code];
 end;
 
-function phoneNumT.getPrettyPrint(): string;
+function TphoneNum.getPrettyPrint(): string;
 begin
-    Result := Format('+%d (%d) %d-%d', [countryCodeF, networkCodeF, subscriptionCodeF, subscriptionCode2F]);
+    Result := Format('+%d (%d) %d-%d', [FcountryCode, FnetworkCode, FsubscriptionCode, FsubscriptionCode2]);
 end;
 
-function phoneNumT.getBrazilNumber(): string;
+function TphoneNum.getBrazilNumber(): string;
 begin
-    Result := Format('%d %d-%d', [networkCodeF, subscriptionCodeF, subscriptionCode2F]);
+    Result := Format('%d %d-%d', [FnetworkCode, FsubscriptionCode, FsubscriptionCode2]);
 end;
 
-function phoneNumT.getInternationalNumber(): string;
+function TphoneNum.getInternationalNumber(): string;
 begin
-    if subscriptionCode2F = 0 then
-        Result := Format('%d %d %d', [countryCodeF, networkCodeF, subscriptionCodeF])
+    if FsubscriptionCode2 = 0 then
+        Result := Format('%d %d %d', [FcountryCode, FnetworkCode, FsubscriptionCode])
     else
-        Result := Format('%d %d %d%d', [countryCodeF, networkCodeF, subscriptionCodeF, subscriptionCode2F]);
+        Result := Format('%d %d %d%d', [FcountryCode, FnetworkCode, FsubscriptionCode, FsubscriptionCode2]);
 end;
 
 function matchPhone(phone: string; regex: string): TMatch;
 begin
-    if phone.IsEmpty() then raise phoneE.Create('phone passed is empty');
+    if phone.IsEmpty() then raise Ephone.Create('phone passed is empty');
 
     var match: TMatch;
     try
         match := TRegEx.Match(phone, regex);
     except
-        on E: Exception do raise phoneE.Create('error trying to match phone number. Message: ' + E.Message);
+        on E: Exception do raise Ephone.Create('error trying to match phone number. Message: ' + E.Message);
     end;
 
-    if not match.Success then raise phoneE.Create('no match was found for the phone');
+    if not match.Success then raise Ephone.Create('no match was found for the phone');
 
     Result := match;
 end;
 
-constructor phoneNumT.CreateFromBrazil(phone: string);
+constructor TphoneNum.CreateFromBrazil(phone: string);
 begin
     inherited Create();    
 
@@ -138,15 +139,15 @@ begin
     try
         match := matchPhone(phone, brazilRegex);
     except
-        on E: phoneE do raise;
-        on E: Exception do phoneE.Create('unexpected exception. Message: ' + E.Message);
+        on E: Ephone do raise;
+        on E: Exception do Ephone.Create('unexpected exception. Message: ' + E.Message);
     end;
 
     var i: integer;
     var country: integer := -1;
 
-    if match.Groups.Count < 5 then raise phoneE.Create('regex on brazil phone number didn''t found all values.');
-    if match.Groups.Count > 5 then raise phoneE.Create('regex on brazil phone number found extra values. Invalid brazil''s number.');
+    if match.Groups.Count < 5 then raise Ephone.Create('regex on brazil phone number didn''t found all values.');
+    if match.Groups.Count > 5 then raise Ephone.Create('regex on brazil phone number found extra values. Invalid brazil''s number.');
 
     for i := 0 to match.Groups.Count-1 do
     begin
@@ -158,24 +159,24 @@ begin
                     country := 55;
             end;
 
-            2: networkCodeF := match.Groups.Item[i].Value.ToInteger;                                                        // ddd
+            2: FnetworkCode := match.Groups.Item[i].Value.ToInteger;                                                        // ddd
             3: begin                                                                                                        // num1
                 var num1: string := '9' + match.Groups.Item[i].Value;
-                subscriptionCodeF := num1.ToInteger;            
+                FsubscriptionCode := num1.ToInteger;            
             end;
-            4: subscriptionCode2F := match.Groups.Item[i].Value.ToInteger;                                                  // num2
+            4: FsubscriptionCode2 := match.Groups.Item[i].Value.ToInteger;                                                  // num2
         end;
     end;
 
-    if country <> 55 then raise phoneE.Create('country passed is not from brazil. Country code 55 not found.');
-    if subscriptionCodeF.ToString.Length <> 5 then raise phoneE.Create('phone number first numeric part has length different than 5. number: ['+ IntToStr(subscriptionCodeF) +']. Invalid brazil''s number');
-    if subscriptionCode2F.ToString.Length <> 4 then raise phoneE.Create('phone number second numeric part has length different than 4. number: ['+ IntToStr(subscriptionCode2F) +']. Invalid brazil''s number');
-    if subscriptionCode2F = 0 then raise phoneE.Create('phone number doesn''t have a second numeric part like: "94454-5745". Invalid brazil''s number');
+    if country <> 55 then raise Ephone.Create('country passed is not from brazil. Country code 55 not found.');
+    if FsubscriptionCode.ToString.Length <> 5 then raise Ephone.Create('phone number first numeric part has length different than 5. number: ['+ IntToStr(FsubscriptionCode) +']. Invalid brazil''s number');
+    if FsubscriptionCode2.ToString.Length <> 4 then raise Ephone.Create('phone number second numeric part has length different than 4. number: ['+ IntToStr(FsubscriptionCode2) +']. Invalid brazil''s number');
+    if FsubscriptionCode2 = 0 then raise Ephone.Create('phone number doesn''t have a second numeric part like: "94454-5745". Invalid brazil''s number');
 
-    countryCodeF := 55;
+    FcountryCode := 55;
 end;
 
-constructor phoneNumT.CreateFromInternational(phone: string);
+constructor TphoneNum.CreateFromInternational(phone: string);
 begin
     inherited Create();    
 
@@ -183,38 +184,38 @@ begin
     try
         match := matchPhone(phone, internationalRegex);
     except
-        on E: phoneE do raise;
-        on E: Exception do phoneE.Create('unexpected exception. Message: ' + E.Message);
+        on E: Ephone do raise;
+        on E: Exception do Ephone.Create('unexpected exception. Message: ' + E.Message);
     end;
 
-    if match.Groups.Count < 4 then raise phoneE.Create('regex on international phone number didn''t found enough values.');
-    if match.Groups.Count > 5 then raise phoneE.Create('regex on international phone number found too many values. Invalid international''s number.');
+    if match.Groups.Count < 4 then raise Ephone.Create('regex on international phone number didn''t found enough values.');
+    if match.Groups.Count > 5 then raise Ephone.Create('regex on international phone number found too many values. Invalid international''s number.');
 
     var i: integer;
     for i := 0 to match.Groups.Count - 1 do
     begin
         case i of
-            1: countryCodeF := match.Groups.Item[i].Value.ToInteger;
-            2: networkCodeF := match.Groups.Item[i].Value.ToInteger;
+            1: FcountryCode := match.Groups.Item[i].Value.ToInteger;
+            2: FnetworkCode := match.Groups.Item[i].Value.ToInteger;
             3: begin
                 var val: String := match.Groups.Item[i].Value;
                 val := val.Replace('-', '');
                 val := val.Replace(' ', '');
-                subscriptionCodeF := StrToInt64(val);
+                FsubscriptionCode := StrToInt64(val);
             end;
 
             4: begin
                 var val: String := match.Groups.Item[i].Value;
                 val := val.Replace('-', '');
                 val := val.Replace(' ', '');
-                subscriptionCode2F := StrToInt64(val);
+                FsubscriptionCode2 := StrToInt64(val);
             end;
 
         end;
     end;
 end;
 
-destructor phoneNumT.Destroy();
+destructor TphoneNum.Destroy();
 begin
     inherited Destroy();
 end;

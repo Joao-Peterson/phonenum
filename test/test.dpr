@@ -11,8 +11,8 @@ uses
 	DUnitX.TestResult,
 	DUnitX.Loggers.Console,
 	DUnitX.Loggers.XML.NUnit,
-	testsU in 'testsU.pas',
-	phoneNumU in '../src/phoneNumU.pas';
+	Utests in 'Utests.pas',
+	UphoneNum in '../src/UphoneNum.pas';
 
 var
     runner : ITestRunner;

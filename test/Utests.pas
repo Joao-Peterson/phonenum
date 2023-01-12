@@ -1,4 +1,4 @@
-﻿unit testsU;
+﻿unit Utests;
 
 interface
 
@@ -7,7 +7,7 @@ uses
 
 type
     [TestFixture]
-    phoneNumTestT = class
+    TphoneNumTest = class
         [Test]
         [TestCase('Case 0: +55 49 95769-8674',  '+55 49 95769-8674,55,49,95769,8674,49 95769-8674,1')]
         [TestCase('Case 1: 55 49 95769-8674',   '55 49 95769-8674,55,49,95769,8674,49 95769-8674,1')]
@@ -71,16 +71,16 @@ type
 implementation
 
 uses
-    phoneNumU,
+    UphoneNum,
     System.Classes,
     System.SysUtils,
     System.IOUtils;
 
-procedure phoneNumTestT.prettyPrintTest(phone: string; expectedFull: string; shouldPass: Integer);
+procedure TphoneNumTest.prettyPrintTest(phone: string; expectedFull: string; shouldPass: Integer);
 begin
-    var p: phoneNumT; 
+    var p: TphoneNum; 
     try
-        p := phoneNumT.CreateFromInternational(phone);
+        p := TphoneNum.CreateFromInternational(phone);
     except
         on E: Exception do raise;
     end;
@@ -95,11 +95,11 @@ begin
     end;
 end;
 
-procedure phoneNumTestT.getCountryNameTest(phone: string; expectedCountryName: string; shouldPass: Integer);
+procedure TphoneNumTest.getCountryNameTest(phone: string; expectedCountryName: string; shouldPass: Integer);
 begin
-    var p: phoneNumT; 
+    var p: TphoneNum; 
     try
-        p := phoneNumT.CreateFromInternational(phone);
+        p := TphoneNum.CreateFromInternational(phone);
     except
         on E: Exception do raise;
     end;
@@ -115,17 +115,17 @@ begin
             procedure begin
                 var name: string := p.countryName;   
             end,
-            phoneE,
-            'phoneE'
+            Ephone,
+            'Ephone'
         );
     end;
 end;
 
-procedure phoneNumTestT.getDDDRegionTest(phone: string; expectedDDDRegion: string; shouldPass: Integer);
+procedure TphoneNumTest.getDDDRegionTest(phone: string; expectedDDDRegion: string; shouldPass: Integer);
 begin
-    var p: phoneNumT; 
+    var p: TphoneNum; 
     try
-        p := phoneNumT.CreateFromBrazil(phone);
+        p := TphoneNum.CreateFromBrazil(phone);
     except
         on E: Exception do raise;
     end;
@@ -148,11 +148,11 @@ begin
     end;
 end;
 
-procedure phoneNumTestT.brazilTest(phone: string; expectedCountry: Integer; expectedNetwork: Integer; expectedNum1: Int64; expectedNum2: Int64; expectedFull: string; shouldPass: Integer);
+procedure TphoneNumTest.brazilTest(phone: string; expectedCountry: Integer; expectedNetwork: Integer; expectedNum1: Int64; expectedNum2: Int64; expectedFull: string; shouldPass: Integer);
 begin
-    var p: phoneNumT; 
+    var p: TphoneNum; 
     try
-        p := phoneNumT.CreateFromBrazil(phone);
+        p := TphoneNum.CreateFromBrazil(phone);
     except
         on E: Exception do raise;
     end;
@@ -180,17 +180,17 @@ begin
     end;
 end;
 
-procedure phoneNumTestT.internacionalTest(phone: string; expectedCountry: Integer; expectedNetwork: Integer; expectedNum1: Int64; expectedNum2: Int64; expectedFull: string; shouldPass: Integer);
+procedure TphoneNumTest.internacionalTest(phone: string; expectedCountry: Integer; expectedNetwork: Integer; expectedNum1: Int64; expectedNum2: Int64; expectedFull: string; shouldPass: Integer);
 begin
-    var p: phoneNumT; 
+    var p: TphoneNum; 
     try
-        p := phoneNumT.CreateFromInternational(phone);
+        p := TphoneNum.CreateFromInternational(phone);
     except
         on E: Exception do raise;
     end;
 
     var country: integer := p.countryCode; 
-    var network: integer := p.networkCarrierCode; 
+    var network: integer := p.networkCode; 
     var num1: Int64 := p.subscriptionNumber; 
     var num2: Int64 := p.subscriptionNumber2; 
     
@@ -213,5 +213,5 @@ begin
 end;
 
 initialization
-    TDUnitX.RegisterTestFixture(phoneNumTestT);
+    TDUnitX.RegisterTestFixture(TphoneNumTest);
 end.
